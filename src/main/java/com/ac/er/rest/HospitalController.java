@@ -59,7 +59,7 @@ public class HospitalController {
     return hospital;
   }
   
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(method = RequestMethod.POST, consumes = "application/json;charset=UTF-8", produces="application/json;charset=UTF-8")
   public Object postHospital(@RequestBody Hospital hospital) {
     if (hospital == null) return new SimpleErrorMessage("Invalid Parameters", "The Hospital Data Provided was not valid");
     
@@ -87,8 +87,9 @@ public class HospitalController {
     return new SimpleMessage("Operation Successful", "The POST operation was successful");
   }
   
-  @RequestMapping(method = RequestMethod.PUT)
-  public Object putHospital(@RequestBody Hospital hospital) {
+  @RequestMapping(method = RequestMethod.PUT, consumes = "application/json;charset=UTF-8", produces="application/json;charset=UTF-8")
+  public Object putHospital(@RequestParam(value="hospitalid") long hospitalID, 
+                            @RequestBody Hospital hospital) {
     if (hospital == null) return new SimpleErrorMessage("Invalid Parameters", "The Hospital Data Provided was not valid");
     
     MongoClient client = null;
@@ -115,7 +116,7 @@ public class HospitalController {
     return new SimpleMessage("Operation Successful", "The POST operation was successful");
   }
   
-  @RequestMapping(method = RequestMethod.DELETE)
+  @RequestMapping(method = RequestMethod.DELETE, produces="application/json;charset=UTF-8")
   public Object deleteHospital(@RequestParam(value="hospitalid") long hospitalID) {
     if (hospitalID < 0) return new SimpleErrorMessage("Invalid Parameters", "The Hospital ID Provided was not a valid value");
     
