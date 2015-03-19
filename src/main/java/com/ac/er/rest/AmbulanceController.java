@@ -60,7 +60,7 @@ public class AmbulanceController {
     return ambulance;
   }
   
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(method = RequestMethod.POST, consumes = "application/json;charset=UTF-8", produces="application/json;charset=UTF-8")
   public Object postAmbulance(@RequestBody Ambulance ambulance) {
     if (ambulance == null) return new SimpleErrorMessage("Invalid Parameters", "The Ambulance Data Provided was not valid");
     
@@ -88,9 +88,12 @@ public class AmbulanceController {
     return new SimpleMessage("Operation Successful", "The POST operation was successful");
   }
   
-  @RequestMapping(method = RequestMethod.PUT)
-  public Object putAmbulance(@RequestBody Ambulance ambulance) {
+  @RequestMapping(method = RequestMethod.PUT, consumes = "application/json;charset=UTF-8", produces="application/json;charset=UTF-8")
+  public Object putAmbulance(@RequestParam(value="ambulanceid") long ambulanceID, 
+                             @RequestBody Ambulance ambulance) {
     if (ambulance == null) return new SimpleErrorMessage("Invalid Parameters", "The Ambulance Data Provided was not valid");
+    if (ambulanceID != ambulance.getAmbulanceID())
+      return new SimpleErrorMessage("Invalid Parameters", "The Ambulance Data Provided was not valid");
     
     MongoClient client = null;
     try {
@@ -117,7 +120,7 @@ public class AmbulanceController {
     return new SimpleMessage("Operation Successful", "The PUT operation was successful");
   }
   
-  @RequestMapping(method = RequestMethod.DELETE)
+  @RequestMapping(method = RequestMethod.DELETE, produces="application/json;charset=UTF-8")
   public Object deleteAmbulance(@RequestParam(value="ambulanceid") long ambulanceID) {
     if (ambulanceID < 0) return new SimpleErrorMessage("Invalid Parameters", "The Ambulance ID Provided was not a valid value");
     
