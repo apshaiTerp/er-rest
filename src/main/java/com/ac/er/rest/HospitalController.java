@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ac.er.data.Hospital;
+import com.ac.er.data.HospitalCapacityData;
 import com.ac.er.message.SimpleErrorMessage;
 import com.ac.er.message.SimpleMessage;
 import com.ac.er.mongo.HospitalConverter;
@@ -89,8 +90,8 @@ public class HospitalController {
   
   @RequestMapping(method = RequestMethod.PUT, consumes = "application/json;charset=UTF-8", produces="application/json;charset=UTF-8")
   public Object putHospital(@RequestParam(value="hospitalid") long hospitalID, 
-                            @RequestBody Hospital hospital) {
-    if (hospital == null) return new SimpleErrorMessage("Invalid Parameters", "The Hospital Data Provided was not valid");
+                            @RequestBody HospitalCapacityData hospitalData) {
+    if (hospitalData == null) return new SimpleErrorMessage("Invalid Parameters", "The Hospital Data Provided was not valid");
     
     MongoClient client = null;
     try {
@@ -106,6 +107,26 @@ public class HospitalController {
 
     //We're going to bypass the whole insert/upsert/update dilmena by using the update with upsert option
     try {
+      BasicDBObject queryObject = HospitalConverter.convertIDTOQuery(hospitalID);
+      DBCursor cursor = hospitalCollection.find(queryObject);
+      Hospital hospital = null;
+      
+      while (cursor.hasNext()) {
+        DBObject resultObject = cursor.next();
+        hospital = HospitalConverter.convertMongoToHospital(resultObject);
+      }
+      
+      //Copy over the fields from the PUT data
+      hospital.setErBeds(hospitalData.getErBeds());
+      hospital.setErBedsFree(hospitalData.getErBedsFree());
+      hospital.setErBedsOccupied(hospitalData.getErBedsOccupied());
+      hospital.setErBedsCleanup(hospitalData.getErBedsCleanup());
+
+      hospital.setErBeds(hospitalData.getTraumaBeds());
+      hospital.setTraumaBedsFree(hospitalData.getTraumaBedsFree());
+      hospital.setTraumaBedsOccupied(hospitalData.getTraumaBedsOccupied());
+      hospital.setTraumaBedsCleanup(hospitalData.getTraumaBedsCleanup());
+
       hospitalCollection.update(HospitalConverter.convertIDTOQuery(hospital), 
           HospitalConverter.convertHospitalToMongo(hospital), true, false);
     } catch (Throwable t) {
@@ -113,7 +134,7 @@ public class HospitalController {
       try { client.close(); } catch (Throwable t2) { /** Ignore Errors */ }
       return new SimpleErrorMessage("Database Operation Exception", "Database Operation Failed: " + t.getMessage());
     }
-    return new SimpleMessage("Operation Successful", "The POST operation was successful");
+    return new SimpleMessage("Operation Successful", "The PUT operation was successful");
   }
   
   @RequestMapping(method = RequestMethod.DELETE, produces="application/json;charset=UTF-8")
