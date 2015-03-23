@@ -122,7 +122,7 @@ public class HospitalController {
       hospital.setErBedsOccupied(hospitalData.getErBedsOccupied());
       hospital.setErBedsCleanup(hospitalData.getErBedsCleanup());
 
-      hospital.setErBeds(hospitalData.getTraumaBeds());
+      hospital.setTraumaBeds(hospitalData.getTraumaBeds());
       hospital.setTraumaBedsFree(hospitalData.getTraumaBedsFree());
       hospital.setTraumaBedsOccupied(hospitalData.getTraumaBedsOccupied());
       hospital.setTraumaBedsCleanup(hospitalData.getTraumaBedsCleanup());
