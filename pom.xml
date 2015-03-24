@@ -50,6 +50,18 @@
         <surefire.plugin.version>2.18.1</surefire.plugin.version>
     </properties>
     
+    <profiles>
+		  <profile>
+		    <id>doclint-java8-disable</id>
+		    <activation>
+		      <jdk>[1.8,)</jdk>
+		    </activation>
+		    <properties>
+		      <javadoc.opts>-Xdoclint:none</javadoc.opts>
+		    </properties>
+		  </profile>
+    </profiles>
+    
     <dependencies>
         <dependency>
             <groupId>org.mongodb</groupId>
@@ -146,6 +158,7 @@
                     <docencoding>UTF-8</docencoding>
                     <docfilessubdirs>true</docfilessubdirs>
                     <source>1.6</source>
+                    <additionalparam>${javadoc.opts}</additionalparam>
                 </configuration>
                 <executions>
                   <execution>
@@ -223,6 +236,7 @@
                     <docencoding>UTF-8</docencoding>
                     <docfilessubdirs>true</docfilessubdirs>
                     <source>1.6</source>
+                    <additionalparam>${javadoc.opts}</additionalparam>
                 </configuration>
             </plugin>
             <plugin>
