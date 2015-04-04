@@ -164,7 +164,7 @@ public class ShortestPathController {
     
     List<Hospital> alternateHospitals = new LinkedList<Hospital>();
     if (altCondition != null) { 
-      BasicDBObject queryObject2 = new BasicDBObject("levelOfCare", trueCondition);
+      BasicDBObject queryObject2 = new BasicDBObject("levelOfCare", altCondition);
       
       DBCursor cursor2 = hospitalCollection.find(queryObject2);
       while (cursor2.hasNext()) {
@@ -210,6 +210,8 @@ public class ShortestPathController {
       if (!trueCondition.equalsIgnoreCase("basicER")) {
         if (trueCondition.equalsIgnoreCase("basicERPed")) {
           route.setHospitalName(hospital.getHospitalName() + " (Pediatric Emergency Care)");
+        } else if (trueCondition.equalsIgnoreCase("traumaPed")) {
+          route.setHospitalName(hospital.getHospitalName() + " (Pediatric Trauma Center)");
         } else if (trueCondition.equalsIgnoreCase("trauma1")) {
           route.setHospitalName(hospital.getHospitalName() + " (Level I Trauma Center)");
         } else if (trueCondition.equalsIgnoreCase("trauma2")) {
@@ -244,11 +246,11 @@ public class ShortestPathController {
 
       if (altCondition == null) route.setHospitalName(hospital.getHospitalName());
       else if (!altCondition.equalsIgnoreCase("basicER")) {
-        if (trueCondition.equalsIgnoreCase("trauma1")) {
+        if (altCondition.equalsIgnoreCase("trauma1")) {
           route.setHospitalName(hospital.getHospitalName() + " (Level I Trauma Center)");
-        } else if (trueCondition.equalsIgnoreCase("trauma2")) {
+        } else if (altCondition.equalsIgnoreCase("trauma2")) {
           route.setHospitalName(hospital.getHospitalName() + " (Level II Trauma Center)");
-        } else if (trueCondition.equalsIgnoreCase("trauma3")) {
+        } else if (altCondition.equalsIgnoreCase("trauma3")) {
           route.setHospitalName(hospital.getHospitalName() + " (Level III Trauma Center)");
         }
       } else route.setHospitalName(hospital.getHospitalName());
@@ -285,6 +287,15 @@ public class ShortestPathController {
     
     For example or helps, use https://spring.io/guides/gs/consuming-rest/
     *****************************************************************************************/
+    if (qualifyingRouteHospitals.size() < 3) {
+      if (alternateRouteHospitals.size() > 0) {
+        int pos = 0;
+        while ((qualifyingRouteHospitals.size() < 3) && (pos < alternateRouteHospitals.size())) {
+          qualifyingRouteHospitals.add(alternateRouteHospitals.get(pos));
+          pos++;
+        }
+      }
+    }
     
     //TODO - Override this return, right now it will return all qualifyingRouteHospitals
     return qualifyingRouteHospitals;
