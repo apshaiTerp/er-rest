@@ -32,8 +32,8 @@ public class HospitalConverter {
     if (hospital.getHospitalName() != null)     dbObject.append("hospitalName", hospital.getHospitalName());
     if (hospital.getHospitalLat() != 0.0)       dbObject.append("lat", hospital.getHospitalLat());
     if (hospital.getHospitalLon() != 0.0)       dbObject.append("lon", hospital.getHospitalLon());
-    if (hospital.getHospitalString() != null)   dbObject.append("address", hospital.getHospitalString());
-    if (hospital.getHospitalStatus() != null)   dbObject.append("levelOfCare", hospital.getHospitalStatus());
+    if (hospital.getAddress() != null)          dbObject.append("address", hospital.getAddress());
+    if (hospital.getLevelOfCare() != null)      dbObject.append("levelOfCare", convertArray(hospital.getLevelOfCare()));
     if (hospital.getHostAges() != null)         dbObject.append("patientAges", convertArray(hospital.getHostAges()));
     if (hospital.getTraumaBeds() != -1)         dbObject.append("traumaBeds", hospital.getTraumaBeds());
     if (hospital.getTraumaBedsFree() != -1)     dbObject.append("traumaBedsFree", hospital.getTraumaBedsFree());
@@ -55,8 +55,8 @@ public class HospitalConverter {
     if (dbObject.containsField("hospitalName"))       hospital.setHospitalName((String)dbObject.get("hospitalName"));
     if (dbObject.containsField("lat"))                hospital.setHospitalLat((Double)dbObject.get("lat"));
     if (dbObject.containsField("lon"))                hospital.setHospitalLon((Double)dbObject.get("lon"));
-    if (dbObject.containsField("address"))            hospital.setHospitalString((String)dbObject.get("address"));
-    if (dbObject.containsField("levelOfCare"))        hospital.setHospitalStatus((String)dbObject.get("levelOfCare"));
+    if (dbObject.containsField("address"))            hospital.setAddress((String)dbObject.get("address"));
+    if (dbObject.containsField("levelOfCare"))        hospital.setLevelOfCare(convertDBListToStringArray((BasicDBList)dbObject.get("levelOfCare")));
     if (dbObject.containsField("patientAges"))        hospital.setHostAges(convertDBListToStringArray((BasicDBList)dbObject.get("patientAges")));
     if (dbObject.containsField("traumaBeds"))         hospital.setTraumaBeds((Integer)dbObject.get("traumaBeds"));
     if (dbObject.containsField("traumaBedsFree"))     hospital.setTraumaBedsFree((Integer)dbObject.get("traumaBedsFree"));
