@@ -45,7 +45,7 @@ public class ShortestPathController {
    * @param ambLat    <latitude coordinate of ambulance>
    * @param ambLon    <longitude coordinate of ambulance>
    * @param age       Should be one of {child|teen|adult}
-   * @param condition Should be one of {level1|level2|level3|basicER|burn|stemi|stroke}
+   * @param condition Should be one of {severe|minor|basicER|burn|stemi|stroke}
    * @param exclude   A List, potentially comma separated, of hospitals to exclude from the algorithm
    * 
    * @return A List of 3 Hospitals that should be reflect our top three (or potentially fewer) destinations.
@@ -67,11 +67,10 @@ public class ShortestPathController {
       return new SimpleErrorMessage("Invalid Parameters", "The Age Value was not in the set of {child|teen|adult}");
     if (condition == null)
       return new SimpleErrorMessage("Invalid Parameters", "No Condition Value was provided");
-    if (!condition.equalsIgnoreCase("level1") && !condition.equalsIgnoreCase("level2") && 
-        !condition.equalsIgnoreCase("level3") && !condition.equalsIgnoreCase("basicER") &&
-        !condition.equalsIgnoreCase("burn") && !condition.equalsIgnoreCase("stemi") && 
-        !condition.equalsIgnoreCase("stroke"))
-      return new SimpleErrorMessage("Invalid Parameters", "The Condition Value was not in the set of {level1|level2|level3|basicER|burn|stemi|stroke}");
+    if (!condition.equalsIgnoreCase("severe") && !condition.equalsIgnoreCase("minor") && 
+        !condition.equalsIgnoreCase("stroke") && !condition.equalsIgnoreCase("basicER") &&
+        !condition.equalsIgnoreCase("burn") && !condition.equalsIgnoreCase("stemi"))
+      return new SimpleErrorMessage("Invalid Parameters", "The Condition Value was not in the set of {severe|minor|basicER|burn|stemi|stroke}");
     List<Long> excludeIDs = null;
     try {
       if (exclude.trim().length() == 0) excludeIDs = new ArrayList<Long>(0);
@@ -92,14 +91,17 @@ public class ShortestPathController {
         altCondition  = "basicER";
       } else if (condition.equalsIgnoreCase("burn")) {
         trueCondition = "burnPed";
-        altCondition  = "trauma1";
-      } else if (condition.toLowerCase().startsWith("level")) {
+        altCondition  = "trauma2";
+      } else if (condition.equalsIgnoreCase("severe")) {
         trueCondition = "traumaPed";
-        altCondition  = condition.toLowerCase().replace("level", "trauma");
+        altCondition  = "trauma2";
+      } else if (condition.equalsIgnoreCase("minor")) {
+        trueCondition = "traumaPed";
+        altCondition  = "trauma3";
       } else {
         //If we got here, we somehow have a child manifesting with a stroke or heart attack....
         trueCondition = "traumaPed";
-        altCondition  = "trauma1";
+        altCondition  = "trauma2";
       }
     } else {
       //These are only the adult conditions
@@ -118,19 +120,13 @@ public class ShortestPathController {
         trueCondition = "stroke";
         //No need for an alternate here, this patient needs to go to a Stroke Center
         altCondition   = null;
-      } else {
-        //The only thing left is the levelX trauma conditions
-        if (condition.equalsIgnoreCase("level1")) {
-          trueCondition = "trauma1";
-          altCondition  = "trauma2";
-        } else if (condition.equalsIgnoreCase("level2")) {
-          trueCondition = "trauma2";
-          altCondition  = "trauma3";
-        } else if (condition.equalsIgnoreCase("level3")) {
-          trueCondition = "trauma3";
-          altCondition  = "basicER";
-        }
-      }
+      } else if (condition.equalsIgnoreCase("severe")) {
+        trueCondition = "trauma2";
+        altCondition  = "trauma3";
+      } else if (condition.equalsIgnoreCase("minor")) {
+        trueCondition = "trauma3";
+        altCondition  = null;
+      } 
     }
     if (trueCondition == null)
       return new SimpleErrorMessage("Invalid Parameters", "I'm not sure what to make of condition (" + condition + "), but it wasn't right");
