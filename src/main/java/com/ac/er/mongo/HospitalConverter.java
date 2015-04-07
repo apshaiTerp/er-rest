@@ -43,6 +43,11 @@ public class HospitalConverter {
     if (hospital.getErBeds() != -1)             dbObject.append("erBedsFree", hospital.getErBedsFree());
     if (hospital.getErBeds() != -1)             dbObject.append("erBedsOccupied", hospital.getErBedsOccupied());
     if (hospital.getErBedsCleanup() != -1)      dbObject.append("erBedsCleanup", hospital.getErBedsCleanup());
+    if (hospital.getErDivert() != null)         dbObject.append("erDivert", hospital.getErDivert());
+    if (hospital.getTraumaDivert() != null)     dbObject.append("traumaDivert", hospital.getTraumaDivert());
+    if (hospital.getBurnDivert() != null)       dbObject.append("burnDivert", hospital.getBurnDivert());
+    if (hospital.getStemiDivert() != null)      dbObject.append("stemiDivert", hospital.getStemiDivert());
+    if (hospital.getStrokeDivert() != null)     dbObject.append("strokeDivert", hospital.getStrokeDivert());
 
     return dbObject;
   }
@@ -66,6 +71,11 @@ public class HospitalConverter {
     if (dbObject.containsField("erBedsFree"))         hospital.setErBedsFree((Integer)dbObject.get("erBedsFree"));
     if (dbObject.containsField("erBedsOccupied"))     hospital.setErBedsOccupied((Integer)dbObject.get("erBedsOccupied"));
     if (dbObject.containsField("erBedsCleanup"))      hospital.setErBedsCleanup((Integer)dbObject.get("erBedsCleanup"));
+    if (dbObject.containsField("erDivert"))           hospital.setErDivert((String)dbObject.get("erDivert"));
+    if (dbObject.containsField("traumaDivert"))       hospital.setTraumaDivert((String)dbObject.get("traumaDivert"));
+    if (dbObject.containsField("burnDivert"))         hospital.setBurnDivert((String)dbObject.get("burnDivert"));
+    if (dbObject.containsField("stemiDivert"))        hospital.setStemiDivert((String)dbObject.get("stemiDivert"));
+    if (dbObject.containsField("strokeDivert"))       hospital.setStrokeDivert((String)dbObject.get("strokeDivert"));
     
     return hospital;
   }

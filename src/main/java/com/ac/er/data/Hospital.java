@@ -23,6 +23,12 @@ public class Hospital {
   private int      erBedsOccupied;
   private int      erBedsCleanup;
   
+  private String   erDivert;
+  private String   traumaDivert;
+  private String   burnDivert;
+  private String   stemiDivert;
+  private String   strokeDivert;
+  
   public Hospital() {
     hospitalID         = -1;
     hospitalName       = null;
@@ -39,6 +45,12 @@ public class Hospital {
     erBedsFree         = -1;
     erBedsOccupied     = -1;
     erBedsCleanup      = -1;
+    
+    erDivert           = null;
+    traumaDivert       = null;
+    burnDivert         = null;
+    stemiDivert        = null;
+    strokeDivert       = null;
   }
 
   /**
@@ -249,5 +261,75 @@ public class Hospital {
    */
   public void setLevelOfCare(String[] levelOfCare) {
     this.levelOfCare = levelOfCare;
+  }
+
+  /**
+   * @return the erDivert
+   */
+  public String getErDivert() {
+    return erDivert;
+  }
+
+  /**
+   * @param erDivert the erDivert to set
+   */
+  public void setErDivert(String erDivert) {
+    this.erDivert = erDivert;
+  }
+
+  /**
+   * @return the traumaDivert
+   */
+  public String getTraumaDivert() {
+    return traumaDivert;
+  }
+
+  /**
+   * @param traumaDivert the traumaDivert to set
+   */
+  public void setTraumaDivert(String traumaDivert) {
+    this.traumaDivert = traumaDivert;
+  }
+
+  /**
+   * @return the burnDivert
+   */
+  public String getBurnDivert() {
+    return burnDivert;
+  }
+
+  /**
+   * @param burnDivert the burnDivert to set
+   */
+  public void setBurnDivert(String burnDivert) {
+    this.burnDivert = burnDivert;
+  }
+
+  /**
+   * @return the stemiDivert
+   */
+  public String getStemiDivert() {
+    return stemiDivert;
+  }
+
+  /**
+   * @param stemiDivert the stemiDivert to set
+   */
+  public void setStemiDivert(String stemiDivert) {
+    this.stemiDivert = stemiDivert;
+  }
+
+  /**
+   * @return the strokeDivert
+   */
+  public String getStrokeDivert() {
+    return strokeDivert;
+  }
+
+  /**
+   * @param strokeDivert the strokeDivert to set
+   */
+  public void setStrokeDivert(String strokeDivert) {
+    this.strokeDivert = strokeDivert;
   }
 }

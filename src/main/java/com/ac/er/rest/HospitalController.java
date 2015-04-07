@@ -126,6 +126,12 @@ public class HospitalController {
       hospital.setTraumaBedsFree(hospitalData.getTraumaBedsFree());
       hospital.setTraumaBedsOccupied(hospitalData.getTraumaBedsOccupied());
       hospital.setTraumaBedsCleanup(hospitalData.getTraumaBedsCleanup());
+      
+      hospital.setErDivert(hospitalData.getErDivert());
+      hospital.setTraumaDivert(hospitalData.getTraumaDivert());
+      hospital.setBurnDivert(hospitalData.getBurnDivert());
+      hospital.setStemiDivert(hospitalData.getStemiDivert());
+      hospital.setStrokeDivert(hospitalData.getStrokeDivert());
 
       hospitalCollection.update(HospitalConverter.convertIDTOQuery(hospital), 
           HospitalConverter.convertHospitalToMongo(hospital), true, false);

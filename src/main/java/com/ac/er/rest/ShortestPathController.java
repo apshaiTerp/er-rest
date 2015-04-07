@@ -1,14 +1,20 @@
 package com.ac.er.rest;
 
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.json.JSONObject;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.ac.er.data.Hospital;
 import com.ac.er.data.HospitalRouteData;
@@ -28,6 +34,11 @@ import com.mongodb.MongoClient;
 @RestController
 @RequestMapping("/shortestpath")
 public class ShortestPathController {
+  
+  public final static DecimalFormat formatter = new DecimalFormat("##.########");
+  
+  //This is the 
+  public static String URL_ROOT = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=<originLat>,<originLon>&destinations=<destLat>,<destLon>&clientID=662159346848-deoqbkle9scov01ehtobm9lealqglt5a.apps.googleusercontent.com";
   
   /**
    * 
@@ -143,6 +154,22 @@ public class ShortestPathController {
     //Now we need to construct the correct the correct query to get what we want
     //db.hospital.find( { "levelOfCare": { $in: ["level1", "level2"] }})
     BasicDBObject queryObject  = new BasicDBObject("levelOfCare", trueCondition);
+    if (trueCondition.startsWith("trauma")) {
+      queryObject.append("traumaDivert", "open");
+      queryObject.append("traumaBedsFree", new BasicDBObject("$gt", 0));
+    } else if (trueCondition.startsWith("basicER")) {
+      queryObject.append("erDivert", "open");
+      queryObject.append("erBedsFree", new BasicDBObject("$gt", 0));
+    } else if (trueCondition.startsWith("burn")) {
+      queryObject.append("burnDivert", "open");
+      queryObject.append("traumaBedsFree", new BasicDBObject("$gt", 0));
+    } else if (trueCondition.equalsIgnoreCase("stemi")) {
+      queryObject.append("stemiDivert", "open");
+      queryObject.append("erBedsFree", new BasicDBObject("$gt", 0));
+    } else if (trueCondition.equalsIgnoreCase("stroke")) {
+      queryObject.append("strokeDivert", "open");
+      queryObject.append("erBedsFree", new BasicDBObject("$gt", 0));
+    }
     
     List<Hospital> qualifyingHospitals = new LinkedList<Hospital>();
     DBCursor cursor = hospitalCollection.find(queryObject);
@@ -165,6 +192,13 @@ public class ShortestPathController {
     List<Hospital> alternateHospitals = new LinkedList<Hospital>();
     if (altCondition != null) { 
       BasicDBObject queryObject2 = new BasicDBObject("levelOfCare", altCondition);
+      if (altCondition.startsWith("trauma")) {
+        queryObject2.append("traumaDivert", "open");
+        queryObject2.append("traumaBedsFree", new BasicDBObject("$gt", 0));
+      } else if (altCondition.startsWith("basicER")) {
+        queryObject2.append("erDivert", "open");
+        queryObject2.append("erBedsFree", new BasicDBObject("$gt", 0));
+      }
       
       DBCursor cursor2 = hospitalCollection.find(queryObject2);
       while (cursor2.hasNext()) {
@@ -213,11 +247,11 @@ public class ShortestPathController {
         } else if (trueCondition.equalsIgnoreCase("traumaPed")) {
           route.setHospitalName(hospital.getHospitalName() + " (Pediatric Trauma Center)");
         } else if (trueCondition.equalsIgnoreCase("trauma1")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level I Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         } else if (trueCondition.equalsIgnoreCase("trauma2")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level II Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         } else if (trueCondition.equalsIgnoreCase("trauma3")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level III Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         } else if (trueCondition.equalsIgnoreCase("STEMI")) {
           route.setHospitalName(hospital.getHospitalName() + " (STEMI Receiving Center)");
         } else if (trueCondition.equalsIgnoreCase("stroke")) {
@@ -247,11 +281,11 @@ public class ShortestPathController {
       if (altCondition == null) route.setHospitalName(hospital.getHospitalName());
       else if (!altCondition.equalsIgnoreCase("basicER")) {
         if (altCondition.equalsIgnoreCase("trauma1")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level I Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         } else if (altCondition.equalsIgnoreCase("trauma2")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level II Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         } else if (altCondition.equalsIgnoreCase("trauma3")) {
-          route.setHospitalName(hospital.getHospitalName() + " (Level III Trauma Center)");
+          route.setHospitalName(hospital.getHospitalName() + getTraumaText(hospital));
         }
       } else route.setHospitalName(hospital.getHospitalName());
       alternateRouteHospitals.add(route);
@@ -265,40 +299,86 @@ public class ShortestPathController {
     //IFF that list size is less than three, run the sorting algorithm on the alternateRouteHospitals List.
     //Add as many elements as needed to fill out the qualifyingRouteHospitals list until it gets to three,
     //then return it.
-    *******************************************************************************************************/
-    
-    //We should now have a list of Hospitals.  Now we need to go run our search algorithm.
-    //TODO - Write the algorithm here
-    /*****************************************************************************************
+
     This is where we will make our External calls to figure out what needs to happen.
     Spring provides some basic classes for making these calls.
+    *******************************************************************************************************/
     
-    The actual code here will be something like this:
-    for (Hospital hospital : qualifyingHospitals) {
-      String dynamicURL = "My API root" + ambLat + "&lon=" + ambLon;
+   // The actual code here will be something like this:
+    Map<Integer, HospitalRouteData> sortMap = new HashMap<Integer, HospitalRouteData>();
+    for (HospitalRouteData hospital : qualifyingRouteHospitals) {
+      String dynamicURL = URL_ROOT.replace("<originLat>", formatter.format(ambLat));
+      dynamicURL = dynamicURL.replace("<originLon>", formatter.format(ambLon));
+      dynamicURL = dynamicURL.replace("<destLat>", formatter.format(hospital.getHospitalLat()));
+      dynamicURL = dynamicURL.replace("<destLon>", formatter.format(hospital.getHospitalLon()));
+      
+      //DEBUG
+      System.out.println ("dynamicURL:" + dynamicURL);
       
       RestTemplate restTemplate = new RestTemplate();
       //MyCustomObject models the return fields from the JSON API call.
-      MyCustomObject object = restTemplate.getForObject(dynamicURL, MyCustomObject.class);
+      String jsonResults = restTemplate.getForObject(dynamicURL, String.class);
+      JSONObject jsonObject = new JSONObject(jsonResults);
+      JSONObject distanceObject = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance");
+      JSONObject durationObject = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("duration");
       
-      //Use the values retrieved to figure out what needs to be done
-    
+      hospital.setDistance(distanceObject.getString("text"));
+      sortMap.put(new Integer(durationObject.getInt("value")), hospital);
     }
     
-    For example or helps, use https://spring.io/guides/gs/consuming-rest/
-    *****************************************************************************************/
+    List<Integer> sortKeySet = new ArrayList<Integer>(sortMap.keySet());
+    Collections.sort(sortKeySet);
+    
+    List<HospitalRouteData> finalDataSet = new ArrayList<HospitalRouteData>();
+    for (int i = 0; (i < 3) && (i < sortKeySet.size()); i++) {
+      HospitalRouteData data = sortMap.get(sortKeySet.get(i));
+      data.setEta(convertTimeToETA(sortKeySet.get(i)));
+      
+      finalDataSet.add(data);
+    }
+        
     if (qualifyingRouteHospitals.size() < 3) {
+      //If we did not get 3 elements, we need to run the comparison for alternate sites, sort it, and pad our results till we get three.
+      
       if (alternateRouteHospitals.size() > 0) {
+        sortMap.clear();
+        sortKeySet.clear();
+        
+        for (HospitalRouteData hospital : alternateRouteHospitals) {
+          String dynamicURL = URL_ROOT.replace("<originLat>", formatter.format(ambLat));
+          dynamicURL = dynamicURL.replace("<originLon>", formatter.format(ambLon));
+          dynamicURL = dynamicURL.replace("<destLat>", formatter.format(hospital.getHospitalLat()));
+          dynamicURL = dynamicURL.replace("<destLon>", formatter.format(hospital.getHospitalLon()));
+          
+          //DEBUG
+          System.out.println ("dynamicURL:" + dynamicURL);
+          
+          RestTemplate restTemplate = new RestTemplate();
+          //MyCustomObject models the return fields from the JSON API call.
+          String jsonResults = restTemplate.getForObject(dynamicURL, String.class);
+          JSONObject jsonObject = new JSONObject(jsonResults);
+          JSONObject distanceObject = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("distance");
+          JSONObject durationObject = jsonObject.getJSONArray("rows").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONObject("duration");
+          
+          hospital.setDistance(distanceObject.getString("text"));
+          sortMap.put(new Integer(durationObject.getInt("value")), hospital);
+        }
+        
+        sortKeySet = new ArrayList<Integer>(sortMap.keySet());
+        Collections.sort(sortKeySet);
+        
         int pos = 0;
-        while ((qualifyingRouteHospitals.size() < 3) && (pos < alternateRouteHospitals.size())) {
-          qualifyingRouteHospitals.add(alternateRouteHospitals.get(pos));
+        while ((finalDataSet.size() < 3) && (pos < alternateRouteHospitals.size())) {
+          HospitalRouteData data = sortMap.get(sortKeySet.get(pos));
+          data.setEta(convertTimeToETA(sortKeySet.get(pos)));
+          
+          finalDataSet.add(data);
           pos++;
         }
       }
     }
     
-    //TODO - Override this return, right now it will return all qualifyingRouteHospitals
-    return qualifyingRouteHospitals;
+    return finalDataSet;
   }
   
   private List<Long> parseExcludeIDs(String exclude) throws Exception {
@@ -321,5 +401,29 @@ public class ShortestPathController {
     }
     return excludeIDs;
   }
-
+  
+  private String getTraumaText(Hospital hospital) {
+    boolean hasTrauma1 = false;
+    boolean hasTrauma2 = false;
+    boolean hasTrauma3 = false;
+    
+    for (String level : hospital.getLevelOfCare()) {
+      if (level.equalsIgnoreCase("trauma1"))      hasTrauma1 = true;
+      else if (level.equalsIgnoreCase("trauma2")) hasTrauma2 = true;
+      else if (level.equalsIgnoreCase("trauma3")) hasTrauma3 = true;
+    }
+    
+    if (hasTrauma1) return " (Level I Trauma Center)";
+    if (hasTrauma2) return " (Level II Trauma Center)";
+    if (hasTrauma3) return " (Level III Trauma Center)";
+    return "";
+  }
+  
+  private String convertTimeToETA(int timeInSeconds) {
+    int minutes = timeInSeconds / 60;
+    int seconds = timeInSeconds % 60;
+    if (seconds < 10)
+      return "" + minutes + ":0" + seconds;
+    else return "" + minutes + ":" + seconds;
+  }
 }
