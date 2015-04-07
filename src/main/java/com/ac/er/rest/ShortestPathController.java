@@ -224,6 +224,8 @@ public class ShortestPathController {
       }
     }
     
+    try { client.close(); } catch (Throwable t) { /** Ignore Errors */ }
+    
     //Before we move on, I want to go ahead and convert into the return type objects to help clean things up
     List<HospitalRouteData> qualifyingRouteHospitals = new ArrayList<HospitalRouteData>(qualifyingHospitals.size());
     List<HospitalRouteData> alternateRouteHospitals  = new ArrayList<HospitalRouteData>(alternateHospitals.size());

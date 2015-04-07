@@ -85,6 +85,7 @@ public class AmbulanceController {
       try { client.close(); } catch (Throwable t2) { /** Ignore Errors */ }
       return new SimpleErrorMessage("Database Operation Exception", "Database Operation Failed: " + t.getMessage());
     }
+    try { client.close(); } catch (Throwable t2) { /** Ignore Errors */ }
     return new SimpleMessage("Operation Successful", "The POST operation was successful");
   }
   
