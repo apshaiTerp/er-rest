@@ -328,7 +328,13 @@ public class ShortestPathController {
     Collections.sort(sortKeySet);
     
     List<HospitalRouteData> finalDataSet = new ArrayList<HospitalRouteData>();
-    for (int i = 0; (i < 3) && (i < sortKeySet.size()); i++) {
+    int capResultSize = 3;
+    
+    //This is important so we can ensure that the one single closest basicER also shows up in their recommendations
+    if ((!age.equalsIgnoreCase("adult")) && (trueCondition.equalsIgnoreCase("basicERPed")))
+      capResultSize = 2;
+    
+    for (int i = 0; (i < capResultSize) && (i < sortKeySet.size()); i++) {
       HospitalRouteData data = sortMap.get(sortKeySet.get(i));
       data.setEta(convertTimeToETA(sortKeySet.get(i)));
       
